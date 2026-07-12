@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Why is my regex slow? — The Lab</title>
+  <meta name="description" content="A hand-written backtracking regex engine, instrumented to count every step. Watch an innocent pattern like (a+)+$ detonate into millions of steps on a twenty-character string. Interactive, zero dependencies." />
+  <link rel="stylesheet" href="lab.css" />
+  <style>
+    :root { --accent: #ff6b6b; --accent-soft: #4a2626; --accent-ink: #1f0a0a; }
+    :root { --ok: #4ad07b; --warn: #ffb01f; --dim: #5b6377; }
+
+    /* controls */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+    .toolbar .field { flex: 1 1 260px; }
+    .toolbar input[type="text"] { width: 100%; font-family: var(--mono); font-size: 15px; letter-spacing: .01em; }
+    .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+    .presets .plabel { font-family: var(--mono); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-mute); margin-right: 4px; }
+    .preset {
+      font-family: var(--mono); font-size: 12.5px; color: var(--ink-soft);
+      background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 999px;
+      padding: 6px 12px; cursor: pointer; user-select: none; transition: .15s; white-space: nowrap;
+    }
+    .preset:hover { border-color: var(--accent); color: var(--ink); }
+    .preset .tag { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; opacity: .7; margin-left: 6px; }
+    .preset.boom .tag { color: var(--accent); }
+    .preset.safe .tag { color: var(--ok); }
+
+    /* top grid: counter (narrow) + chart (wide — the money shot) */
+    .rx-top { display: grid; grid-template-columns: 300px minmax(0,1fr); gap: 20px; align-items: stretch; margin-top: 22px; }
+    @media (max-width: 900px) { .rx-top { grid-template-columns: 1fr; } }
+
+    .counter { padding: 22px 24px; display: flex; flex-direction: column; }
+    .counter .lab { font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-mute); }
+    .bignum {
+      font-family: var(--mono); font-weight: 600; letter-spacing: -.02em;
+      font-size: clamp(30px, 9vw, 42px); line-height: 1; margin: 10px 0 2px;
+      color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    .bignum.capped { color: var(--warn); }
+    .bignum.calm { color: var(--ok); }
+    .counter .sub { font-family: var(--mono); font-size: 13px; color: var(--ink-soft); }
+    .verdict { margin-top: 16px; font-family: var(--mono); font-size: 13px; padding: 10px 12px;
+      border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); line-height: 1.5; }
+    .verdict .big { display: flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 600; }
+    .verdict .dot2 { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); flex: none; }
+    .verdict.bad  { border-color: color-mix(in oklab, var(--accent) 55%, var(--line)); }
+    .verdict.bad .dot2 { background: var(--accent); }
+    .verdict.warn { border-color: color-mix(in oklab, var(--warn) 55%, var(--line)); }
+    .verdict.warn .dot2 { background: var(--warn); }
+    .verdict .body { color: var(--ink-soft); margin-top: 6px; }
+
+    .chartwrap { padding: 18px 18px 12px; display: flex; flex-direction: column; }
+    .chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .chart-head .t { font-family: var(--mono); font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-mute); }
+    #rx-chart { display: block; width: 100%; height: auto; }
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-mute); }
+    .chart-legend .li { display: inline-flex; align-items: center; gap: 7px; }
+    .chart-legend .sw { width: 16px; height: 3px; border-radius: 2px; flex: none; }
+    .chart-cap { font-family: var(--mono); font-size: 11.5px; color: var(--ink-mute); margin-top: 6px; line-height: 1.5; }
+    .chart-cap b { color: var(--ink-soft); }
+
+    /* step-through */
+    .stepper { padding: 20px 22px; margin-top: 20px; }
+    .stepper .rowlab { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-mute); margin: 0 0 7px; }
+    .cellrow { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 16px; }
+    .cell {
+      font-family: var(--mono); font-size: 16px; line-height: 1;
+      min-width: 30px; height: 38px; padding: 0 4px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--surface-2); border: 1px solid var(--line); border-radius: 7px;
+      color: var(--ink-soft); position: relative; transition: background .1s, border-color .1s, color .1s;
+    }
+    .cell.eaten { color: var(--ink); background: color-mix(in oklab, var(--ok) 14%, var(--surface-2)); border-color: color-mix(in oklab, var(--ok) 40%, var(--line)); }
+    .cell.cursor { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); font-weight: 700; box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 30%, transparent); }
+    .cell.patcursor { color: var(--ink); background: var(--surface); border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 26%, transparent); }
+    .cell.endcap { color: var(--ink-faint); min-width: 22px; font-size: 12px; }
+    .cell .idx { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--ink-faint); }
+
+    .stepbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 4px; }
+    .stepbar .btn { padding: 9px 12px; }
+    .actionpill { font-family: var(--mono); font-size: 12.5px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--surface-2); color: var(--ink-soft); min-width: 132px; }
+    .actionpill b { font-weight: 700; }
+    .actionpill.match  b { color: var(--ok); }
+    .actionpill.fail   b { color: var(--dim); }
+    .actionpill.backtrack b { color: var(--accent); }
+    .scrub { flex: 1 1 200px; display: flex; align-items: center; gap: 10px; min-width: 200px; }
+    .scrub input[type=range] { flex: 1; }
+    .scrub .cnt { font-family: var(--mono); font-size: 12px; color: var(--ink-mute); white-space: nowrap; }
+    .speedrow { display: flex; align-items: center; gap: 10px; }
+    .speedrow label { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-mute); }
+    .speedrow input[type=range] { width: 120px; }
+    .animnote { font-family: var(--mono); font-size: 11.5px; color: var(--ink-mute); margin-top: 14px; line-height: 1.5; }
+    .animnote b { color: var(--ink-soft); }
+
+    .trybox { padding: 20px 22px; }
+    .trybox .statline { font-family: var(--mono); font-size: 12.5px; letter-spacing: .08em; color: var(--ink-mute); margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <nav class="labnav">
+    <div class="wrap">
+      <a class="brand" href="https://github.com/moshejs"><span class="dot"></span> The Lab</a>
+      <span class="spacer"></span>
+      <a class="navlink" href="https://github.com/moshejs/regex-backtracking">Source ↗</a>
+    </div>
+  </nav>
+
+  <header class="exhead wrap">
+    <span class="eyebrow">Exhibit 03 · Computational complexity</span>
+    <h1 class="title">Why is my regex slow?</h1>
+    <p class="dek">An innocent-looking pattern, a twenty-character string, and suddenly your CPU is doing millions of steps. Meet catastrophic backtracking — live.</p>
+  </header>
+
+  <main class="wrap">
+    <div class="metastrip">
+      <span><b>Hand-written</b> backtracking engine</span>
+      <span><b>Step-accurate</b> instrumentation</span>
+      <span><b>0</b> dependencies</span>
+      <span><b>No</b> native RegExp used to match</span>
+    </div>
+
+    <section class="read prose stack">
+      <p>Most of the time, a regular expression is fast — it reads your string once and answers. But some patterns hide a trap. Feed them the wrong input and the matching engine starts trying <strong>every possible way</strong> to split the string, and the number of ways grows exponentially. A pattern that looks harmless can take a modern computer <em>longer than the age of the universe</em> on a string you could type in a second.</p>
+      <p>Below is a complete regex engine, written by hand, that runs entirely in your browser — no libraries, and it deliberately does <strong>not</strong> use your browser's built-in <code>RegExp</code> to do the matching. Every match attempt, advance, and backtrack is counted. Type a pattern, pick a victim string, and watch the step counter.</p>
+    </section>
+
+    <!-- ============ THE INTERACTIVE ============ -->
+    <section style="margin: 30px 0 10px;">
+      <div class="toolbar">
+        <div class="field">
+          <label for="rx-pattern">Pattern</label>
+          <input id="rx-pattern" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" value="(a+)+$" />
+        </div>
+        <div class="field">
+          <label for="rx-string">Test string</label>
+          <input id="rx-string" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" value="aaaaaaaaaaaaaaaaaa!" />
+        </div>
+        <button class="btn primary" id="rx-run">Run it →</button>
+      </div>
+
+      <div class="presets" id="rx-presets">
+        <span class="plabel">Try</span>
+        <!-- filled by JS -->
+      </div>
+
+      <div class="rx-top">
+        <div class="panel counter">
+          <span class="lab">Steps taken by the engine</span>
+          <div class="bignum" id="rx-steps">0</div>
+          <div class="sub" id="rx-headline">—</div>
+          <div class="verdict" id="rx-verdict">
+            <div class="big"><span class="dot2"></span><span id="rx-verdict-title">Ready</span></div>
+            <div class="body" id="rx-verdict-body">Hit “Run it” or pick a preset.</div>
+          </div>
+        </div>
+
+        <div class="panel chartwrap">
+          <div class="chart-head">
+            <span class="t">Steps vs input length</span>
+          </div>
+          <canvas id="rx-chart" width="640" height="340" aria-label="Chart of steps versus input length, log scale"></canvas>
+          <div class="chart-legend">
+            <span class="li"><span class="sw" style="background:var(--accent)"></span>this pattern</span>
+            <span class="li"><span class="sw" style="background:var(--dim)"></span>a linear engine (RE2)</span>
+          </div>
+          <div class="chart-cap" id="rx-chart-cap">Each point runs the current pattern on a longer input. Y axis is a <b>log scale</b>.</div>
+        </div>
+      </div>
+
+      <!-- step-through -->
+      <div class="panel stepper">
+        <p class="rowlab">Pattern — the accent cell is where the matcher is reading</p>
+        <div class="cellrow" id="rx-pat-cells"></div>
+        <p class="rowlab">Input — green is consumed, accent is the current position</p>
+        <div class="cellrow" id="rx-str-cells"></div>
+
+        <div class="stepbar">
+          <button class="btn" id="rx-restart" title="Restart">⟲</button>
+          <button class="btn" id="rx-back" title="Step back">◀</button>
+          <button class="btn primary" id="rx-play" title="Play / pause" style="min-width:92px; justify-content:center;">▶ Play</button>
+          <button class="btn" id="rx-fwd" title="Step forward">▶</button>
+          <span class="actionpill" id="rx-action">—</span>
+          <div class="scrub">
+            <input type="range" id="rx-scrub" min="0" max="0" value="0" />
+            <span class="cnt" id="rx-stepcnt">0 / 0</span>
+          </div>
+          <div class="speedrow">
+            <label for="rx-speed">Speed</label>
+            <input type="range" id="rx-speed" min="1" max="30" value="9" />
+          </div>
+        </div>
+        <div class="animnote" id="rx-anim-note"></div>
+      </div>
+
+      <section class="read" style="margin-top:22px;">
+        <div class="panel trybox">
+          <div class="statline">TRY THIS</div>
+          <div class="prose" style="color:var(--ink-soft)">
+            Load <b>“nested +”</b>, then add one <code>a</code> to the string at a time and re-run. Watch the step count roughly <b>double</b> with every single character — until it slams into the <b>5,000,000-step</b> safety cap and the engine gives up. That “giving up” is your web server timing out in production.
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ============ THE EXPLAINER ============ -->
+    <section class="read prose stack" style="margin-top: 46px;">
+      <h2>What backtracking actually is</h2>
+      <p>A backtracking engine matches a pattern by walking left to right and making <strong>guesses</strong>. When it hits a quantifier like <code>a+</code> it greedily grabs as many <code>a</code>s as it can, then tries to match the rest of the pattern. If that fails, it doesn't give up — it <em>backtracks</em>: gives one <code>a</code> back, and tries again. On a normal pattern there are only a handful of guesses to walk back through, so this is fast and it's what makes features like backreferences possible.</p>
+      <p>The step counter above is counting exactly those guesses. Each match attempt, each advance, each time the engine gives a character back and tries a different split — one step.</p>
+
+      <h2>Why <code>(a+)+</code> is a bomb</h2>
+      <p>Look at the nesting: an inner <code>a+</code> wrapped in an outer <code>(...)+</code>. Both are greedy, and they overlap — they both want to match runs of <code>a</code>. So for a string of <em>n</em> <code>a</code>s, there are exponentially many ways to divide it between the inner and outer quantifiers: one group of five, or a group of two and a group of three, or five groups of one, and so on. That's <strong>2<sup>n-1</sup></strong> distinct ways to carve up the string.</p>
+      <p>As long as the string matches, the engine finds a match on its first, greedy try and never explores the rest. The disaster is on <strong>failure</strong>. Add a single character the pattern can't match — here, the <code>!</code> anchored against <code>$</code> — and the final match fails. Now the engine dutifully backtracks and tries <em>every one of those exponentially many splittings</em>, because any of them <em>might</em> have let the rest succeed. None do. Twenty <code>a</code>s and one <code>!</code> is enough to ask for millions of steps; thirty would ask for billions.</p>
+
+      <h2>How to spot the danger</h2>
+      <p>The red flag is <strong>a quantifier inside a quantifier over the same characters</strong>: <code>(a+)+</code>, <code>(a*)*</code>, <code>(.*)*</code>, <code>(\d+)*</code>. Close cousins are <strong>overlapping alternations under a quantifier</strong> like <code>(a|a)+</code> or <code>(\w|\d)*</code>, where the branches can match the same thing, so the engine has two indistinguishable choices at every step — and <code>2<sup>n</sup></code> combinations to try when the whole thing fails. The failure is what's expensive, which is exactly why these bugs sail through your tests (which use matching inputs) and only detonate when a user pastes something slightly off.</p>
+
+      <h2>How real systems avoid it</h2>
+      <p>Two families of fixes. The first keeps backtracking but bolts the trap shut: <strong>atomic groups</strong> <code>(?&gt;...)</code> and <strong>possessive quantifiers</strong> <code>a++</code> tell the engine "having matched this, never give it back," which collapses the exponential fan-out. Anchoring precisely and avoiding nested/overlapping quantifiers does the same by construction.</p>
+      <p>The second family abandons backtracking altogether. Engines like Google's <strong>RE2</strong>, Rust's <code>regex</code> crate, and Go's <code>regexp</code> compile the pattern to a finite automaton and simulate it, matching in time that's <strong>linear</strong> in the input length no matter what the pattern looks like — that's the flat gray line in the chart. They give up backreferences to get a guarantee: no input can ever make them blow up. If you're running regexes on untrusted input, that trade is almost always the right one. This whole page is a backtracking engine precisely so you can watch what those linear engines refuse to do.</p>
+    </section>
+  </main>
+
+  <footer class="labfoot">
+    <div class="wrap">
+      <span>The Lab — handmade interactive explainers.</span>
+      <span class="spacer" style="flex:1"></span>
+      <a href="https://github.com/moshejs/regex-backtracking">Source ↗</a>
+    </div>
+  </footer>
+
+  <script src="regex.js"></script>
+</body>
+</html>
