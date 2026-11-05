@@ -5,6 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Why is my regex slow? — The Lab</title>
   <meta name="description" content="A hand-written backtracking regex engine, instrumented to count every step. Watch an innocent pattern like (a+)+$ detonate into millions of steps on a twenty-character string. Interactive, zero dependencies." />
+  <!-- Google Analytics 4 (consent mode v2; skipped on localhost and preview hosts) -->
+  <script>
+    (function () {
+      var GA_ID = 'G-S5XM451PDQ';
+      var h = location.hostname;
+      if (!h || h === 'localhost' || h === '127.0.0.1' || /\.local$/.test(h) ||
+          h.indexOf('-git-') !== -1 || /-[a-z0-9]{9}-[a-z0-9-]+\.vercel\.app$/.test(h)) return;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      window.gtag = gtag;
+      gtag('consent', 'default', {
+        ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        region: ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','IS','LI','NO','GB','CH'],
+        wait_for_update: 500
+      });
+      gtag('consent', 'default', {
+        ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted',
+        analytics_storage: 'granted'
+      });
+      gtag('js', new Date());
+      gtag('config', GA_ID);
+    })();
+  </script>
   <link rel="stylesheet" href="lab.css" />
   <style>
     :root { --accent: #ff6b6b; --accent-soft: #4a2626; --accent-ink: #1f0a0a; }
