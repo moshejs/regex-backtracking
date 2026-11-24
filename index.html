@@ -122,6 +122,78 @@
     .animnote { font-family: var(--mono); font-size: 11.5px; color: var(--ink-mute); margin-top: 14px; line-height: 1.5; }
     .animnote b { color: var(--ink-soft); }
 
+    /* challenge mode */
+    .chsec { margin-top: 64px; scroll-margin-top: 72px; }
+    .chsec .eyebrow { margin-bottom: 4px; }
+    .chsec h2 { margin-top: .5em; }
+    .chpanel { display: grid; grid-template-columns: 240px minmax(0,1fr); margin-top: 22px; overflow: hidden; }
+    @media (max-width: 820px) { .chpanel { grid-template-columns: 1fr; } }
+    .chnav { border-right: 1px solid var(--line); padding: 16px 12px; background: var(--bg-2); }
+    @media (max-width: 820px) { .chnav { border-right: 0; border-bottom: 1px solid var(--line); } }
+    .chnav ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+    @media (max-width: 820px) { .chnav ol { flex-direction: row; flex-wrap: wrap; gap: 6px; } }
+    .chnav button {
+      width: 100%; display: flex; align-items: center; gap: 10px; text-align: left;
+      font-family: var(--sans); font-size: 14px; color: var(--ink-soft);
+      background: transparent; border: 1px solid transparent; border-radius: var(--r-sm);
+      padding: 8px 10px; cursor: pointer; min-height: 40px;
+    }
+    @media (max-width: 820px) { .chnav button { width: auto; padding: 6px 10px; } .chnav .lbl { display: none; } }
+    .chnav button:hover { color: var(--ink); background: var(--surface-2); }
+    .chnav button[aria-current="step"] { color: var(--ink); background: var(--surface-2); border-color: var(--accent); }
+    .chnav .num { font-family: var(--mono); font-size: 12px; color: var(--ink-mute); min-width: 1.6em; }
+    .chnav .mark { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--ok); }
+    @media (max-width: 820px) { .chnav .mark { margin-left: 0; } }
+    .chprog { display: block; font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; color: var(--ink-mute); margin: 12px 10px 0; }
+    .chbody { padding: 22px 24px 24px; min-width: 0; }
+    @media (max-width: 520px) { .chbody { padding: 18px 16px 20px; } }
+    .chhead { display: flex; flex-direction: column; gap: 6px; }
+    .chlevel { font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+    .chtitle { font-family: var(--serif); font-size: 24px; font-weight: 600; margin: 0; color: var(--ink); line-height: 1.2; }
+    .chbrief { color: var(--ink-soft); margin: 10px 0 0; }
+    .chbrief code, .chhint code, .chsolved code, .chcase code {
+      font-family: var(--mono); font-size: .86em; background: var(--surface-2); border: 1px solid var(--line);
+      padding: .1em .35em; border-radius: 6px; color: var(--ink); overflow-wrap: anywhere; }
+    .chfacts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 0; }
+    @media (max-width: 620px) { .chfacts { grid-template-columns: 1fr; } }
+    .chfacts div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+    .chfacts dt { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-mute); }
+    .chfacts dd { margin: 4px 0 0; }
+    .chfacts code { font-family: var(--mono); font-size: 14.5px; color: var(--ink); overflow-wrap: anywhere; }
+    .chform { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 18px; }
+    .chform .field { flex: 1 1 280px; min-width: 0; }
+    .chform input[type="text"] { width: 100%; font-family: var(--mono); font-size: 15px; }
+    .chbtns { display: flex; gap: 10px; }
+    #challenge .btn:focus-visible, .chnav button:focus-visible, .chhint summary:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: 2px; }
+    .chtitle:focus { outline: none; }
+    .chhint { margin-top: 14px; font-size: 15px; color: var(--ink-soft); }
+    .chhint summary { cursor: pointer; font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-mute); width: fit-content; border-radius: 4px; }
+    .chhint summary:hover { color: var(--ink); }
+    .chhint p { margin: 8px 0 0; }
+    .chresult:empty { display: none; }
+    .chresult { margin-top: 18px; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; }
+    @media (max-width: 620px) { .chresult { grid-template-columns: 1fr; } }
+    .chresult .verdict { margin-top: 0; }
+    .chresult .full { grid-column: 1 / -1; }
+    .chsteps { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; margin-top: 8px; }
+    .chsteps .n { font-family: var(--mono); font-weight: 600; font-size: 22px; font-variant-numeric: tabular-nums; }
+    .chsteps .before { color: var(--accent); }
+    .chsteps .after.ok { color: var(--ok); }
+    .chsteps .after.no { color: var(--warn); }
+    .chsteps .arrow { color: var(--ink-faint); font-family: var(--mono); }
+    .chcases { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+    .chcase { display: flex; gap: 8px; align-items: baseline; font-family: var(--mono); font-size: 12.5px; color: var(--ink-soft); }
+    .chcase .ic { flex: none; width: 1.2em; font-weight: 700; }
+    .chcase.ok .ic { color: var(--ok); }
+    .chcase.no .ic { color: var(--accent); }
+    .chsolved { margin-top: 18px; padding: 16px 18px; border: 1px solid color-mix(in oklab, var(--ok) 45%, var(--line)); border-radius: 12px; background: var(--surface-2); }
+    .chsolved .statline { font-family: var(--mono); font-size: 12.5px; letter-spacing: .08em; color: var(--ok); }
+    .chsolved p { color: var(--ink-soft); margin: 8px 0 0; }
+    .chsolved .btn { margin-top: 14px; }
+    .chsource { font-size: 14px; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
     .trybox { padding: 20px 22px; }
     .trybox .statline { font-family: var(--mono); font-size: 12.5px; letter-spacing: .08em; color: var(--ink-mute); margin-bottom: 8px; }
   </style>
@@ -131,6 +203,7 @@
     <div class="wrap">
       <a class="brand" href="https://github.com/moshejs"><span class="dot"></span> The Lab</a>
       <span class="spacer"></span>
+      <a class="navlink" href="#challenge">Find the fix</a>
       <a class="navlink" href="https://github.com/moshejs/regex-backtracking">Source ↗</a>
     </div>
   </nav>
@@ -249,6 +322,60 @@
       <p>Two families of fixes. The first keeps backtracking but bolts the trap shut: <strong>atomic groups</strong> <code>(?&gt;...)</code> and <strong>possessive quantifiers</strong> <code>a++</code> tell the engine "having matched this, never give it back," which collapses the exponential fan-out. Anchoring precisely and avoiding nested/overlapping quantifiers does the same by construction.</p>
       <p>The second family abandons backtracking altogether. Engines like Google's <strong>RE2</strong>, Rust's <code>regex</code> crate, and Go's <code>regexp</code> compile the pattern to a finite automaton and simulate it, matching in time that's <strong>linear</strong> in the input length no matter what the pattern looks like — that's the flat gray line in the chart. They give up backreferences to get a guarantee: no input can ever make them blow up. If you're running regexes on untrusted input, that trade is almost always the right one. This whole page is a backtracking engine precisely so you can watch what those linear engines refuse to do.</p>
     </section>
+
+    <!-- ============ CHALLENGE MODE ============ -->
+    <section class="chsec" id="challenge" aria-labelledby="ch-heading">
+      <div class="read prose">
+        <span class="eyebrow">Interview prep · 8 rounds</span>
+        <h2 id="ch-heading">Find the fix</h2>
+        <p>Each round hands you a pattern that backtracks catastrophically and the input that sets it off. Rewrite it. The engine above grades you on two things at once: your pattern must <strong>mean the same thing</strong> (it runs a set of must-match and must-not-match cases), and on the attack input it must stay <strong>linear</strong> — at most <span id="ch-rule-per">40</span> steps per character, and doubling the input may at most <span id="ch-rule-growth">2.5</span>× the steps. Rounds go from warm-up to hard; progress is saved in this browser.</p>
+      </div>
+
+      <div class="panel chpanel">
+        <nav class="chnav" aria-label="Challenge rounds">
+          <ol id="ch-list"></ol>
+          <span class="chprog" id="ch-progress" aria-live="polite"></span>
+        </nav>
+
+        <div class="chbody">
+          <div class="chhead">
+            <span class="chlevel" id="ch-level"></span>
+            <h3 class="chtitle" id="ch-title" tabindex="-1"></h3>
+          </div>
+          <p class="chbrief" id="ch-brief"></p>
+
+          <dl class="chfacts">
+            <div><dt>Original</dt><dd><code id="ch-original"></code></dd></div>
+            <div><dt>Attack input</dt><dd><code id="ch-attack"></code></dd></div>
+          </dl>
+
+          <form class="chform" id="ch-form" autocomplete="off">
+            <div class="field">
+              <label for="ch-input">Your pattern</label>
+              <input id="ch-input" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="ch-brief" />
+            </div>
+            <div class="chbtns">
+              <button class="btn primary" type="submit" id="ch-check">Check fix →</button>
+              <button class="btn" type="button" id="ch-reset">Reset</button>
+            </div>
+          </form>
+
+          <details class="chhint" id="ch-hint-box">
+            <summary>Hint</summary>
+            <p id="ch-hint"></p>
+          </details>
+
+          <div id="ch-result" class="chresult" aria-live="polite"></div>
+
+          <div class="chsolved hidden" id="ch-solved">
+            <div class="statline">WHY IT WORKS</div>
+            <p id="ch-explain"></p>
+            <p class="chsource hidden" id="ch-source"></p>
+            <button class="btn primary" type="button" id="ch-next">Next round →</button>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="labfoot">
@@ -260,6 +387,9 @@
     </div>
   </footer>
 
+  <script src="engine.js"></script>
   <script src="regex.js"></script>
+  <script src="challenges.js"></script>
+  <script src="challenge.js"></script>
 </body>
 </html>
