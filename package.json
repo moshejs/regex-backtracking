@@ -1,7 +1,13 @@
 {
   "name": "regex-backtracking",
   "private": true,
-  "description": "Static site (GitHub Pages). package.json exists only to run the zero-dependency node tests.",
+  "description": "Static site (GitHub Pages). package.json runs the zero-dependency node tests and exposes the in-repo redos-check CLI; it is not published to npm.",
+  "bin": {
+    "redos-check": "bin/redos-check.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "test": "node --test test/"
   }
