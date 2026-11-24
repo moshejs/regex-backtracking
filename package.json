@@ -1,0 +1,8 @@
+{
+  "name": "regex-backtracking",
+  "private": true,
+  "description": "Static site (GitHub Pages). package.json exists only to run the zero-dependency node tests.",
+  "scripts": {
+    "test": "node --test test/"
+  }
+}
